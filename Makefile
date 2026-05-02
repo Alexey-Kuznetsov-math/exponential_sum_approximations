@@ -1,0 +1,38 @@
+# Fotran compiler
+FC = gfortran
+# serial execution of the program
+FCFLAGS = -O3  
+# parallel execution of the program (the values of F(z_j) are computed in parallel)
+#FCFLAFS = -O3 -fopenmp
+
+PROGRAMS = main_hockey_stick
+#PROGRAMS = main_Gaussian
+#**************************************************************************************
+MOD = polynomials_module
+MP_OBJECTS = mpmodule.o mpfuna.o mpfunb.o mpfunc.o mpfund.o mpfune.o mpfunf.o mpfung2.o mpfunh2.o mpmask13.o second.o
+# "make" builds all
+all: $(PROGRAMS)
+
+$(PROGRAMS).o: $(MOD).o $(MP_OBJECTS)
+
+$(PROGRAMS): $(MOD).o $(MP_OBJECTS) 
+  
+%: %.o
+	$(FC) $(FCFLAGS) -o $@ $^
+
+%.o: %.f90
+	$(FC) $(FCFLAGS) -c $< 
+
+clean:
+	rm -f $(PROGRAMS).o $(MOD).o
+	
+clean_mp: 
+	rm -f *.o *.mod *.MOD
+	
+mp:	
+	gfortran -Ofast  -c mpfuna.f90 mpfunb.f90 mpfunc.f90 mpfund.f90 \
+  mpfune.f90 mpfunf.f90 mpfung2.f90 mpfunh2.f90 mpmodule.f90
+	gfortran -O3 -c mpmask13.f90 second.f90
+	
+run:
+	time ./$(PROGRAMS)
